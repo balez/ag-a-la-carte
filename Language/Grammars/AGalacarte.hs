@@ -2,10 +2,9 @@
 {- GHC version 7.8.3
 Author: Florent Balestrieri
 
-This program uses complex contexts and can exhaust the
-context stack if it is too small. Use -fcontext-stack to use
-a bigger stack.
--}
+This program can exhaust the context stack.
+Use the option -fcontext-stack to reserve a bigger stack.  -}
+
 -- ** Exports
 module Language.Grammars.AGalacarte
 ( module Language.Grammars.AGalacarte.Prelude

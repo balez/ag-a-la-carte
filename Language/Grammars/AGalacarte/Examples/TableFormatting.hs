@@ -7,6 +7,8 @@ by Swierstra, S. D. and Azero Alocer, P. R. and Saraiava, J.
 
 Note that the algorithm requires the table to have
 the same number of columns in every row.
+
+Use -fcontext-stack=38 to compile
 -}
 
 -- ** Options
@@ -54,10 +56,6 @@ instance Convert a [a] where
 
 -- ** AG Namespace
 data TableFmt = TableFmt
--- type instance Import TableFmt =
---   '[ IAC (CollectWith 0 (+)) '[MinHeight] '[RowsNil, RowsCons]]
---    , IAC (CollectWith 0 max) '[MinHeight] '[ElemsNil, ElemsCons]]
---    ]
 
 type instance Import TableFmt =
   '[ IA Utils '[SynNode]

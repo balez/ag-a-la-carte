@@ -1,6 +1,9 @@
 -- * Top
 {- GHC version 7.8.3
 Author: Florent Balestrieri
+
+Use -fcontext-stack=35 to compile.
+
 Simple attribute grammar example of a desk calculator, taken from 
 
 "Attribute Grammar Paradigms -- a High-level Methodology in Language Implementation"
