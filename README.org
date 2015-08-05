@@ -1,0 +1,64 @@
+* Attribute Grammars à la Carte
+
+This is an embedded domain specific language in Haskell to
+program attribute grammars. 
+
+The library has many interesting features, some of them
+unseen in other implementations:
+
+- It is a first class system: an attribute grammar is a
+  Haskell value. Other first class AG implementations are
+   - (1) "First-class Attribute Grammars" by Oege De Moor and Kevin Backhouse and S. Doaitse Swierstra.
+   - (2) "Attribute grammars fly first-class: how to do aspect oriented programming in Haskell" by
+          Marcos Viera, Doaitse Swierstra and Wouter Swierstra.
+
+- It is strongly typed. The semantic rules are precisely
+  captured using container functors, ensuring the precise
+  types and number of children is used.
+
+- All the attributes must be fully specified for the program
+  to be accepted.  The same attribute may have a different
+  type for different non-terminals.
+
+- Like with Swierstra's datatypes
+  a la carte, we describe the datatypes modularly, the
+  constructors are specified independently and later combined.
+  New constructors may be added later.
+
+- Semantic rules are specified independently per constructor
+  and per attribute. They carry in their context the set of
+  attributes which they use.
+
+- There is a module system for the semantic rules: they can
+  be inherited from another module and overridden, thus
+  allowing us to change a local behaviour. This is a truly
+  powerful operation that can be likened to refactoring
+  without modifying nor duplicating existing code.
+
+- Attributes can inherit all the rules of another attribute,
+  and override some of them.
+
+- Constructors can inherit all the rules of another
+  constructor, this feature is called a macro in "Attribute
+  Grammar Macros" by Marcos Viera and S. Doaitse Swierstra.
+
+- Generic rules can be defined by the user, for instance the
+  copy rule that propagates an inherited attribute down the
+  tree, or the collect rule that computes a synthesized
+  attributes using monoid operations.
+
+- An attribute grammar can be self-referential: this is used
+  to implement macros.
+  
+- The EDSL doesn't use any template haskell for the syntax,
+  but instead makes good use of type families. For instance,
+  the rules have a variable number of arguments depending on
+  the arity of a constructor.
+
+- The types are very readable. This was in part made possible
+  thanks to type level lists.
+
+- It is based on a generic representation of mutually
+  recursive datatypes using indexed containers.
+
+The documentation is available on the [[https://github.com/balez/ag-a-la-carte/wiki][wiki]].
