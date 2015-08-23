@@ -110,8 +110,6 @@ instance Attribute Lmin where
   type Domain Lmin = Over '[Tree]
 instance Bifunctor Lmin where bimap = cst3 id
 -- ** New tree
-{- parameterised by theinherited attribute that we use to
-   give a value for the leaves -}
 data Ntree = Ntree
 instance Attribute Ntree where
   type Mode Ntree = Synthesized
@@ -205,11 +203,11 @@ repminF = Lmin & (\s -> fromMin (Lmin! s) `as` Gmin) & Ntree
 newRepminF = (0 `as` ICount) & Count & repminF
 
 showTree :: TreeT -> String
-showTree t = Render! runAG' Rendering (frag Render) t
+showTree t = Render! run Rendering (frag Render) t
 
 repmin, newRepmin :: TreeT -> TreeT
-repmin t = fromWTree $ Ntree! runAG' Repmin repminF t
-newRepmin t = fromWTree $ Ntree! runAG' NewRepmin newRepminF t
+repmin t = fromWTree $ Ntree! run Repmin repminF t
+newRepmin t = fromWTree $ Ntree! run NewRepmin newRepminF t
 
 extree :: TreeT
 extree =
@@ -219,7 +217,7 @@ extree =
      l = leaf
      (*) = node
 
--- * Inorder labelling
+-- * In order labelling
 data Labelling = Labelling
 type instance Import Labelling =
  '[ ChainAspect ICount Count '[Node]
@@ -233,4 +231,4 @@ instance (UseI a '[ICount]) => SRule d a Labelling Ntree Leaf where
   srule _ i (Leaf _) = WTree $ leaf $ ICount! i
 
 labelF = (0 `as` ICount) & Count & Ntree
-labelling t = fromWTree $ Ntree! runAG' Labelling labelF t
+labelling t = fromWTree $ Ntree! run Labelling labelF t

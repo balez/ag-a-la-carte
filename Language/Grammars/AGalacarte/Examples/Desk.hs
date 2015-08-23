@@ -32,11 +32,17 @@ by Pedro Martins, João Paulo Fernandes, João Saraiva
 module Language.Grammars.AGalacarte.Examples.Desk where
 -- ** Import
 import Language.Grammars.AGalacarte
+
+import Prelude hiding (print)
+import qualified Prelude
 import Data.Map.Strict (Map)
 import qualified Data.Map.Strict as Map
 import Data.Maybe (fromJust)
 
-main = print $ testDeskExt twiceExample
+main = do
+  Prelude.print $ runDeskG deskExample
+  Prelude.print $ runRenameDeskG deskExample
+  Prelude.print $ testDeskExt twiceExample
 
 -- * Description
 {- attribute grammar from
@@ -90,13 +96,16 @@ verbatim from "Zipper-based Attribute Grammars and their Extensions"
 
 -- * Datatypes for Desk programs
 
-data Prog = Print Exp [Def]        deriving Show
-data Exp  = Exp :+ Fact | Fact Fact deriving Show
-data Fact = Var String | Cst Int   deriving Show
-data Def  = String := Int           deriving Show
+-- note we use quotes because the same names are 
+-- used later to define the AG-a-la-carte implementation.
+
+data Prog  = Print' Exp' [Def']          deriving Show
+data Exp'  = Exp' :+ Fact' | Fact' Fact' deriving Show
+data Fact' = Var' String | Cst' Int      deriving Show
+data Def'  = String := Int               deriving Show
 
 deskExample =
-  Print (Fact (Var "x") :+ Var "y" :+ Cst 11) ["x" := 22, "y" := 33]
+  Print' (Fact' (Var' "x") :+ Var' "y" :+ Cst' 11) ["x" := 22, "y" := 33]
 
 {- deskExample represents the desk program
 
@@ -127,44 +136,44 @@ data FACT
 
 -- *** Productions
 -- **** Print
-data Print' = Print'
-instance Constructor Print' where
-  type Production Print' = PROG :==> '[EXP, DEFS]
+data Print = Print
+instance Constructor Print where
+  type Production Print = PROG :==> '[EXP, DEFS]
 
 -- **** Add
-data Add' = Add'
-instance Constructor Add' where
-  type Production Add' = EXP :==> '[EXP, FACT]
+data Add = Add
+instance Constructor Add where
+  type Production Add = EXP :==> '[EXP, FACT]
 
 -- **** Fact
-data Fact' = Fact'
-instance Constructor Fact' where
-  type Production Fact' = EXP :==> '[FACT]
+data Fact = Fact
+instance Constructor Fact where
+  type Production Fact = EXP :==> '[FACT]
 
 -- **** Var
-data Var' = Var' String
-instance Constructor Var' where
-  type Production Var' = FACT :==> '[]
+data Var = Var String
+instance Constructor Var where
+  type Production Var = FACT :==> '[]
 
 -- **** Cst
-data Cst' = Cst' Int
-instance Constructor Cst' where
-  type Production Cst' = FACT :==> '[]
+data Cst = Cst Int
+instance Constructor Cst where
+  type Production Cst = FACT :==> '[]
 
 -- **** Defnil
-data Defnil' = Defnil'
-instance Constructor Defnil' where
-  type Production Defnil' = DEFS :==> '[]
+data Defnil = Defnil
+instance Constructor Defnil where
+  type Production Defnil = DEFS :==> '[]
 
 -- **** Defcons
-data Defcons' = Defcons'
-instance Constructor Defcons' where
-  type Production Defcons' = DEFS :==> '[DEF, DEFS]
+data Defcons = Defcons
+instance Constructor Defcons where
+  type Production Defcons = DEFS :==> '[DEF, DEFS]
 
 -- **** Def
-data Def' = Def' String Int
-instance Constructor Def' where
-  type Production Def' = DEF :==> '[]
+data Def = Def String Int
+instance Constructor Def where
+  type Production Def = DEF :==> '[]
 
 -- *** Children Names
 type PrintEXP  = N0
@@ -185,14 +194,14 @@ fact_p     = n0
 
 
 -- *** Smart constructors
-iprint   = injC proxies Print'
-iadd     = injC proxies Add'
-ifact    = injC proxies Fact'
-ivar     = injC proxies . Var'
-icst     = injC proxies . Cst'
-idefnil  = injC proxies Defnil'
-idefcons = injC proxies Defcons'
-idef     = injC proxies `res2` Def'
+print   = injC proxies Print
+add     = injC proxies Add
+fact    = injC proxies Fact
+var     = injC proxies . Var
+cst     = injC proxies . Cst
+defnil  = injC proxies Defnil
+defcons = injC proxies Defcons
+def     = injC proxies `res2` Def
 
 -- ** Generic view
 -- *** Constructor list
@@ -203,7 +212,7 @@ a newtype around the CSum container, and add instances for
 Container, IRule', SRule', :<< and :<.
 -}
 
-type DeskCList = '[Print', Add', Fact', Var', Cst', Defnil', Defcons', Def']
+type DeskCList = '[Print, Add, Fact, Var, Cst, Defnil, Defcons, Def]
 newtype DeskC p n = DeskC {fromDeskC :: CSum DeskCList p n}
 instance Container DeskC where
   container = container . fromDeskC
@@ -220,19 +229,19 @@ instance (a :< CSum DeskCList) => a :< DeskC where
 
 type DeskExpr = Expr DeskC
 progE  :: Prog  -> DeskExpr PROG
-expE   :: Exp   -> DeskExpr EXP
-factE  :: Fact  -> DeskExpr FACT
-defsE  :: [Def] -> DeskExpr DEFS
-defE   :: Def   -> DeskExpr DEF
+expE   :: Exp'   -> DeskExpr EXP
+factE  :: Fact'  -> DeskExpr FACT
+defsE  :: [Def'] -> DeskExpr DEFS
+defE   :: Def'   -> DeskExpr DEF
 
-progE (Print e ds) = iprint (expE e) (defsE ds)
-expE (e1 :+ e2)    = iadd (expE e1) (factE e2)
-expE (Fact f)      = ifact $ factE f
-factE (Var v)      = ivar v
-factE (Cst x)      = icst x
-defsE []           = idefnil
-defsE (d:ds)       = idefcons (defE d) (defsE ds)
-defE  (v := x)     = idef v x
+progE (Print' e ds) = print (expE e) (defsE ds)
+expE (e1 :+ e2)    = add (expE e1) (factE e2)
+expE (Fact' f)      = fact $ factE f
+factE (Var' v)      = var v
+factE (Cst' x)      = cst x
+defsE []           = defnil
+defsE (d:ds)       = defcons (defE d) (defsE ds)
+defE  (v := x)     = def v x
 
 -- * Attributes
 
@@ -295,61 +304,61 @@ instance Attribute EnvI where
 instance Bifunctor EnvI where bimap = cst3 id
 
 -- * Semantic rules
--- Desk is a namespace
+-- Desk is a namespace / a rule set.
 data Desk = Desk
 
 type DeskAspect =
   IA Desk '[Code, EnvS, Ok, Value, Name, EnvI]
 
 -- **** Code
-instance (UseS a '[Ok]) => SRule c a Desk Code Print' where
-  srule _ i Print' e d =
+instance (UseS a '[Ok]) => SRule c a Desk Code Print where
+  srule _ i Print e d =
     if Ok! d then Code! e ++ [PRINT, HALT] else [HALT]
 
-instance (UseS a '[Ok, Value]) => SRule c a Desk Code Add' where
-  srule _ i Add' e f =
+instance (UseS a '[Ok, Value]) => SRule c a Desk Code Add where
+  srule _ i Add e f =
     if Ok! f
     then Code! e ++ [ADD $ Value! f]
     else [HALT]
 
-instance (UseS a '[Ok, Value]) => SRule c a Desk Code Fact' where
-  srule _ i Fact' f =
+instance (UseS a '[Ok, Value]) => SRule c a Desk Code Fact where
+  srule _ i Fact f =
     if Ok! f then [LOAD $ Value! f] else [HALT]
 
 -- **** EnvS
-instance SRule c a Desk EnvS Defnil' where
-  srule _ i Defnil' = Map.empty
-instance (UseS a '[Name, Value]) => SRule c a Desk EnvS Defcons' where
-  srule _ i Defcons' h t =
+instance SRule c a Desk EnvS Defnil where
+  srule _ i Defnil = Map.empty
+instance (UseS a '[Name, Value]) => SRule c a Desk EnvS Defcons where
+  srule _ i Defcons h t =
     Map.insert (Name! h) (Value! h) (EnvS! t)
-
+          
 -- **** Ok
-instance (UseI a '[EnvI]) => SRule c a Desk Ok Var' where
-  srule _ i (Var' name) = Map.member name (EnvI! i)
-instance SRule c a Desk Ok Cst' where
+instance (UseI a '[EnvI]) => SRule c a Desk Ok Var where
+  srule _ i (Var name) = Map.member name (EnvI! i)
+instance SRule c a Desk Ok Cst where
   srule _ i _ = True
-instance SRule c a Desk Ok Defnil' where
+instance SRule c a Desk Ok Defnil where
   srule _ i _ = True
-instance (UseS a '[Name, EnvS]) => SRule c a Desk Ok Defcons' where
-  srule _ i Defcons' h t =
+instance (UseS a '[Name, EnvS]) => SRule c a Desk Ok Defcons where
+  srule _ i Defcons h t =
     Ok! t && not (Map.member (Name! h) (EnvS! t))
 
 -- **** Value
-instance (UseI a '[EnvI]) => SRule c a Desk Value Var' where
-  srule _ i (Var' name) = fromJust $ Map.lookup name (EnvI! i)
-instance SRule c a Desk Value Cst' where
-  srule _ i (Cst' x) = x
-instance SRule c a Desk Value Def' where
-  srule _ i (Def' name value) = value
+instance (UseI a '[EnvI]) => SRule c a Desk Value Var where
+  srule _ i (Var name) = fromJust $ Map.lookup name (EnvI! i)
+instance SRule c a Desk Value Cst where
+  srule _ i (Cst x) = x
+instance SRule c a Desk Value Def where
+  srule _ i (Def name value) = value
 
 -- **** Name
-instance SRule c a Desk Name Def' where
-  srule _ i (Def' name value) = name
+instance SRule c a Desk Name Def where
+  srule _ i (Def name value) = name
 
 -- **** EnvI
 {- Inherited Attribute.
 
-Cases for Add' and Fact' are taken care of by the default
+Cases for Add and Fact are taken care of by the default
 instance which automatically copies attributes from parents
 to children. For this we need to fall back to the Copy grammar
 by default.
@@ -368,14 +377,14 @@ IRule take care of it.
 This order of attributes in a fragment do not matter.
 -}
 
-instance (UseS a '[EnvS]) => IRule c a Desk EnvI Print' PrintEXP where
-  irule _ i Print' e d = EnvS ! d
+instance (UseS a '[EnvS]) => IRule c a Desk EnvI Print PrintEXP where
+  irule _ i Print e d = EnvS ! d
 
 -- * Running the AG
 deskF envi = envi `asAttr` EnvI & Code & EnvS & Ok & Name & Value
 
 --runDeskG :: Prog -> [Instr]
-runDeskG prog = Code ! runAG' Desk (deskF attrTrivial)  exp
+runDeskG prog = Code ! run Desk (deskF attrTrivial) exp
   where exp = progE prog
 
 -- ** renaming
@@ -410,7 +419,7 @@ renameDeskF envi =
   where infixr 8 .
         (.) = (Prelude..)
 
-runRenameDeskG prog = Code ! runAG' Desk (renameDeskF attrTrivial) exp
+runRenameDeskG prog = Code ! run Desk (renameDeskF attrTrivial) exp
   where exp = progE prog
 
 
@@ -463,14 +472,14 @@ implementation by "srule . macroFromP".
 -- *** Macro definition
 {- The constraints on the constructors are inferred
 twice_macro
-  :: (Add' :< c, Fact' :< c) =>
+  :: (Add :< c, Fact :< c) =>
      PFrag '[Macro Twice'] '[] c r r '[Macro Twice'] n
 -}
 
 twice_macro = frag $ Macro Twice' `with`
-   MacroDef (\_ e -> iadd (ifact e) e)
-            (Top :> Add' --> add_left
-                 :> Fact' --> fact_p
+   MacroDef (\_ e -> add (fact e) e)
+            (Top :> Add --> add_left
+                 :> Fact --> fact_p
             :. E)
 
 testDeskExt ::
@@ -484,15 +493,17 @@ testDeskExt e =
 -- **** Example with twice
 -- Since the initial desk type doesn't have the twice constructor,
 -- we use alacarte constructors directly.
-infixr 5 `idefcons`
-infixl 5 `iadd`
+infixr 5 `defcons`
+infixl 5 `add`
 twiceExample :: Expr (C Twice' :+: DeskC) PROG
 twiceExample =
-  iprint (itwice (ivar "x")
-          `iadd` ivar "y"
-          `iadd` (icst 11))
-          (idef "x" 22
-           `idefcons`
-           idef "y" 33
-           `idefcons`
-           idefnil)
+  print (itwice (var "x")
+          `add` var "y"
+          `add` (cst 11))
+          (def "x" 22
+           `defcons`
+           def "y" 33
+           `defcons`
+           defnil)
+ex = print (fact (var "x") `add` var "y" `add` cst 11)
+      (def "x" 22 `defcons` def "y" 33 `defcons` defnil)

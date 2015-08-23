@@ -31,7 +31,6 @@ module  Language.Grammars.AGalacarte.Examples.TableFormatting where
 import Language.Grammars.AGalacarte hiding (Elem, Sum, All)
 import Data.Monoid hiding (Sum)
 -- * Table Formatting
--- ** Auxiliary definitions
 -- ** Monoids
 data Max = Max {fromMax :: Int}
 data Sum = Sum {fromSum :: Int}
@@ -192,7 +191,7 @@ instance SRule d a TableFmt MinHeight ElemTab where
 with the monoids (+,0) and (max,0) -}
 minHeight :: TableExpr TABLE -> Int
 minHeight table =
-  MinHeight ! runAG' TableFmt (frag MinHeight) table
+  MinHeight ! run TableFmt (frag MinHeight) table
 
 -- ** Listing 23 TableWidths.ag
 -- *** Attribute declaration
@@ -261,7 +260,7 @@ instance SRule d a TableFmt MinWidths ElemsCons where
 
 minWidths :: TableExpr TABLE -> Int
 minWidths table =
-  MinWidths! runAG' TableFmt (MinWidths & LineMinWidths & (`as` SynNode)) table
+  MinWidths! run TableFmt (MinWidths & LineMinWidths & (`as` SynNode)) table
 
 -- ** Listing 24 TableDistr.ag
 {- Using inherited attributes, 'FinalHeight' and 'FinalWidths' corresponding to 'ah' and 'aws' in the article,
@@ -363,7 +362,7 @@ printTable ::
   , ls :=> Lines) =>
    g -> PFrag i s c a' ls ls TABLE -> TableExpr TABLE -> IO ()
 printTable namespace fragment table =
-  putStr $ unlines $ Lines ! runAG' namespace fragment table
+  putStr $ unlines $ Lines ! run namespace fragment table
 
 formatTable :: TableExpr TABLE -> IO ()
 formatTable = printTable TableFmt fmtFrag
@@ -411,7 +410,7 @@ instance Convert Sum [Int] where
 
 countColumns :: TableExpr TABLE -> [Int]
 countColumns table =
-  CountColumns! runAG' TableCheck (frag CountColumns) table
+  CountColumns! run TableCheck (frag CountColumns) table
 
 -- ** CheckColumns
 {- every row must have the same number of columns -}
@@ -448,7 +447,7 @@ instance Convert Bool All where
 
 checkColumns :: TableExpr TABLE -> Bool
 checkColumns table =
-  CheckColumns! runAG' TableCheck (CountColumns & CheckColumns) table
+  CheckColumns! run TableCheck (CountColumns & CheckColumns) table
 
 badTable = table $ rowsCons (row $ elemsCons (elemStr "this")
                                 $ elemsCons (elemStr "is")

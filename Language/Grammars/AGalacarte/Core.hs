@@ -763,7 +763,7 @@ rules_append (i1' :# i2' :# s1' :# s2' :# r) i1 i2 s1 =
  - c :: container of the expression on which the grammar is ultimately run
  - a :: attribute record on which the rules of i and s lists must apply
  - r :: the renamed attribute record which will be used in practice
- - f :: the attribute record computed by this fragment
+ - f :: the attributes computed by this fragment
  - n :: the non-terminal of the expression on which to run this fragment.
 -}
 newtype PFrag i s c a r f n = PFrag {fromPFrag :: forall g .
@@ -773,9 +773,9 @@ newtype PFrag i s c a r f n = PFrag {fromPFrag :: forall g .
 Therefore we keep universal quantification for all fragments,
 only when executing the grammar do we need to give the proxy.
 -}
-runAG' :: (Rules i s c c a' g) =>
+run :: (Rules i s c c a' g) =>
   g -> PFrag i s c a' a a n -> Expr c n -> Rec a c 'S n
-runAG' g f = runAG $ ag $ fromPFrag f (proxy g)
+run g f = runAG $ ag $ fromPFrag f (proxy g)
 
 pfrag_syn :: (SynAttr l, Container c) =>
   l -> PFrag '[] '[l] c a a '[l] n

@@ -41,6 +41,7 @@ class Container (c :: [*] -> * -> *) where
 {- Base functor of an indexed W type.
 This is also the extension of an indexed container.
  -}
+infix 4 :-
 data Ext (c :: [*] -> * -> *)
          (x :: * -> *)
          (i :: *) where

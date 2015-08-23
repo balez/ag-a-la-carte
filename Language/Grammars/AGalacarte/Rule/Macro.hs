@@ -31,7 +31,8 @@ import Language.Grammars.AGalacarte.Rule.Copy
 
 import Data.Function (fix)
 -- ** Utils
-{- let's make a new aspect label for the attributes needed by macros -}
+-- *** Namespace
+{- let's make a new namespace for the attributes needed by macros -}
 data Utils = Utils
 type instance Import Utils =
   '[ Copy `Match_Attributes` '[Recurse, SynNode]]
@@ -134,7 +135,7 @@ instance (c :< d) => SRule d a Utils SynChildren c where
 -- *** InhSubtree: Subtree's inherited attributes
 {- we built the subtrees containing all the inherited attributes
 Note that this makes the attribute InheritedRec redundant.
-Of course we must be careful not to introduce circular definitions.
+When we use this attribute, we must be careful not to introduce circular definitions.
 -}
 
 data InhSubtree = InhSubtree
@@ -190,7 +191,8 @@ type SMacro c d = forall x . P x ->
    Curry (ChildDom c) (Free d x) (Free d x (Index c))
 
 {- the second part gives a vector of paths which select a subtree of the
-  expression given by SMacro.
+  expression given by SMacro. Each path corresponds to the subtree whose inherited attributes
+are given to the immediate children of the original expression.
 -}
 type IMacro c d = forall x .
   Children c (Path (Tag d x) (Index c))
@@ -244,7 +246,7 @@ runHoag ::
   RunAG c a
 runHoag aspect f init =
   fix $ \this -> RunAG $ \i e -> fix $ \s ->
-    runAG' aspect (f this (init i)) e
+    run aspect (f this (init i)) e
 
 runHoagWithParam :: (Rules i s c c a' g) =>
   g ->
@@ -254,7 +256,7 @@ runHoagWithParam :: (Rules i s c c a' g) =>
   Expr c n ->
   Rec a c S n
 runHoagWithParam aspect fragment init param =
-  runAG' aspect $ fragment (runHoag aspect fragment init) param
+  run aspect $ fragment (runHoag aspect fragment init) param
 
 utilsF run =
   run `as` Recurse & (`as` SynNode) & Self & InhSubtree

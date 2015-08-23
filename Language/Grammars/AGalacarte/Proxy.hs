@@ -120,13 +120,23 @@ iP2 = p2 . breakP3
 iP3 = p3 . breakP4
 iP4 = p4 . breakP5
 
+i1 = iP1 . proxy
+i2 = iP2 . proxy
+i3 = iP3 . proxy
+i4 = iP4 . proxy
 
-i1 = p1 . break2
-i2 = p2 . break3
-i3 = p3 . break4
-i4 = p4 . break5
+-- base type
+btP1 = p2 . breakP2
+btP2 = p3 . breakP3
+btP3 = p4 . breakP4
+btP4 = p5 . breakP5
 
--- **** stiching
+bt1 = btP1 . proxy
+bt2 = btP2 . proxy
+bt3 = btP3 . proxy
+bt4 = btP4 . proxy
+
+-- **** stitching
 stitch1 :: a :#N -> P a
 stitch2 :: b :# a :#N -> P (a b)
 stitch3 :: c :# b :# a :#N -> P (a b c)

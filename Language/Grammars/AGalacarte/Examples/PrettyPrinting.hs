@@ -312,7 +312,7 @@ instance SRule d a PP1 Fmts Choice where
 -- *** testing
         
 pp1 w pp =
-  Fmts ! runAG' PP1 (Fmts & w `as` PageWidth) pp
+  Fmts ! run PP1 (Fmts & w `as` PageWidth) pp
 
 test1 w = display $ pp1 w (example1 :: PP_E)
 
@@ -488,7 +488,7 @@ type instance Import PP2 =
 
 -- ** Tests
 pp2 w pp =
-  Fmts ! runAG' PP2 (Fmts & (w,w) `as` Frame & MinLL & MinW) pp
+  Fmts ! run PP2 (Fmts & (w,w) `as` Frame & MinLL & MinW) pp
 
 test2 w = display $ pp2 w (example1 :: PP_E)
 
@@ -534,6 +534,6 @@ pp_ites2 c t e
            >-< text "else"
            >-< indent 2 e
            >-< var "fi"
-       >^< var "ifc" >-< then_else  >-< var "fi"
-       >^< var "ifc" >||< then_else >-< var "fi"
+       >^< var "ifc" >-< var "then_else"  >-< var "fi"
+       >^< var "ifc" >||< var "then_else" >-< var "fi"
 example2 = pp_ites2 (text "x < y") (text "print foobar") (text "print y")
